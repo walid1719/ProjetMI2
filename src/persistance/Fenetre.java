@@ -10,21 +10,21 @@ import java.awt.event.KeyEvent;
 import javax.swing.*;
 
 public class Fenetre extends JFrame{
-	
+
 	private EntetePanel entetePanel;
 	private DB.RequestUser.UserTablePanel UserTablePanel;
 	private DB.RequestUser.UserDialog UserDialog;
 	//private UserRechercheDialog UserRechercheDialog;
 
-	
+
 	private ControleurUser controleurUser;
 	private EcouteurEntete ecouteurEntete;
 	private ControleurUser.EcouteurDialog ecouteurDialog;
 	private ControleurUser.EcouteurTableUser ecouteurTableUser;
 	//private EcouteurDialogRecherche ecouteurDialogRecherche;
-	
+
 	public Fenetre() {
-		
+
 		this.setTitle("Gestion des utilisateurs");
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		this.setSize(700,400);
@@ -33,8 +33,8 @@ public class Fenetre extends JFrame{
 		 */
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
-		
-		
+
+
 		/**
 		 * L'instanciation des panels
 		 */
@@ -42,20 +42,20 @@ public class Fenetre extends JFrame{
 		UserTablePanel=new DB.RequestUser.UserTablePanel();
 		UserDialog=new DB.RequestUser.UserDialog(this);
 
-		
+
 		controleurUser=new ControleurUser();
 		ecouteurEntete=new EcouteurEntete(this);
 		ecouteurDialog=new ControleurUser.EcouteurDialog(this);
 		ecouteurTableUser=new ControleurUser.EcouteurTableUser(this);
 
-		
+
 		/**
 		 * L'ajout de donnees dans la table
 		 */
 		UserTablePanel.setData(controleurUser.getUsers());
-		
+
 		UserTablePanel.refresh();
-		
+
 		/**
 		 * L'ajout des libelles dans le combobox du dilog
 		 */
@@ -71,28 +71,33 @@ public class Fenetre extends JFrame{
 		for (Status status : controleurUser.getStatus()) {
 			UserDialog.getStatusComboBox().addItem(status.getLibelle());
 		}
-		
+
 		/**
 		 * Les evenements
 		 */
 		entetePanel.getExitItem().addActionListener(ecouteurEntete);
 		entetePanel.getAjouterUserItem().addActionListener(ecouteurEntete);
 		entetePanel.getChercherUserItem().addActionListener(ecouteurEntete);
-		
+
 		UserDialog.getCancelButton().addActionListener(ecouteurDialog);
 		UserDialog.getOkButton().addActionListener(ecouteurDialog);
-		
+		UserTablePanel.getFermerButton().addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				dispose();
+			}
+		});
 		UserTablePanel.getModifierButton().addActionListener(ecouteurTableUser);
 		UserTablePanel.getDeleteButton().addActionListener(ecouteurTableUser);
-		
 
-		
-		
+
+
+
 		/**
 		 * Le layout manager de la fenetre
 		 */
 		this.setLayout(new BorderLayout());
-		
+
 		/**
 		 */
 		/**
@@ -100,7 +105,7 @@ public class Fenetre extends JFrame{
 		 */
 		this.add(entetePanel, BorderLayout.NORTH);
 		this.add(UserTablePanel, BorderLayout.CENTER);
-		
+
 		/**
 		 * Rendre la fenetre visible
 		 */

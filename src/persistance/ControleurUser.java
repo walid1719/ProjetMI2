@@ -7,19 +7,19 @@ import java.util.LinkedList;
 import javax.swing.*;
 
 public class ControleurUser {
-	
+
 	DB.RequestUser RequestUser;
-	
+
 	public ControleurUser() {
 		RequestUser=new DB.RequestUser();
 	}
-	
+
 	public LinkedList<User> getUsers(){
 		return RequestUser.getUsers();
 	}
-	
 
-	
+
+
 	public LinkedList<TypeUser> getUserTypes(){
 		return RequestUser.getUserTypes();
 	}
@@ -38,11 +38,11 @@ public class ControleurUser {
 	public int addUser(User User) {
 		return RequestUser.addUser(User);
 	}
-	
+
 	public int deleteUser(int id) {
 		return RequestUser.deleteUser(id);
 	}
-	
+
 	public int updateUser(User User) {
 		return RequestUser.updateUser(User);
 	}
@@ -142,6 +142,7 @@ public class ControleurUser {
 					fenetre.getUserDialog().getPrenomTextField().setText(User.getPrenom());
 					fenetre.getUserDialog().getPrenomTextField().setText(User.getPrenom());
 					fenetre.getUserDialog().getEmailT().setText(User.getEmail());
+					fenetre.getUserDialog().getPasswordT().setText(User.getPassword());
 					fenetre.getUserDialog().getUsernameT().setText(User.getUsername());
 
 					fenetre.getUserDialog().getTypeUserComboBox().setSelectedIndex(User.getPermission()-1);

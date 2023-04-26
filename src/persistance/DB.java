@@ -11,26 +11,26 @@ import java.util.List;
 
 public class DB {
 
-	public static Connection connection=null;
-	
-	private DB() {
+    public static Connection connection=null;
 
-		try{
-			Class.forName("com.mysql.jdbc.Driver");
-			connection=DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/usersDB?serverTimezone=UTC", "root", "walid2023");
-		}
-		catch(Exception e){
-			e.printStackTrace();
-		}
-			
-	}
-	
-	public static Connection getConection() {
-		if(connection==null) {
-			new DB();
-		}
-		return connection;
-	}
+    private DB() {
+
+        try{
+            Class.forName("com.mysql.jdbc.Driver");
+            connection=DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/usersDB?serverTimezone=UTC", "root", "walid2023");
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
+    public static Connection getConection() {
+        if(connection==null) {
+            new DB();
+        }
+        return connection;
+    }
 
     public static class RequestUser {
 
@@ -99,12 +99,37 @@ public class DB {
                     user.setPassword(rst.getString("password"));
                     user.setLast_connection(rst.getDate("last_connection"));
                 }
+                else { user = null;}
             } catch (SQLException e) {
                 System.out.println(e.getMessage());
             }
             return user;
         }
+        public User getUserById(int id) {
+            User user=new User();
+            try {
+                String query="SELECT * FROM user where id=?";
+                pstm= getConection().prepareStatement(query);
+                pstm.setInt(1, id);
 
+                rst=pstm.executeQuery();
+                if(rst.next()) {
+                    user.setid(rst.getInt("id"));
+                    user.setpermission(rst.getInt("permission"));
+                    user.setStatus(rst.getInt("status"));
+                    user.setNom(rst.getString("nom"));
+                    user.setPrenom(rst.getString("prenom"));
+                    user.setemail(rst.getString("email"));
+                    user.setUsername(rst.getString("username"));
+                    user.setPassword(rst.getString("password"));
+                    user.setLast_connection(rst.getDate("last_connection"));
+                }
+                else { user = null;}
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+            return user;
+        }
 
         /**
          * La liste des types de Users
@@ -147,9 +172,9 @@ public class DB {
             catch(SQLException e){
                 e.printStackTrace();
             }
-              for (Status s : statusUsers){
-                  //System.out.println(s.getId()+"lib  :"+s.getLibelle());
-              }
+            for (Status s : statusUsers){
+                //System.out.println(s.getId()+"lib  :"+s.getLibelle());
+            }
             return statusUsers;
         }
 
@@ -254,7 +279,7 @@ public class DB {
             }
         }
         /**
-        /**
+         /**
          *
          * La supression d'un User
          */
@@ -287,11 +312,8 @@ public class DB {
 
                 pstm.setDate(7, (Date) User.getLast_connection());
                 pstm.setInt(9,User.getid());
-
-               // System.out.println("user"+User.getUsername());
-                //System.out.println("nom"+User.getNom());
-
                 return pstm.executeUpdate();
+
             } catch (SQLException e) {
                 System.out.println(e.getMessage());
                 return 0;
@@ -301,7 +323,8 @@ public class DB {
         public static class UserDialog extends JDialog {
 
             private JLabel usernameL,passwordL,emailL,nomLabel, prenomLabel, typeUserLabel,status;
-            private JTextField usernameT,passwordT,emailT,nomTextField, prenomTextField;
+            private JTextField usernameT,emailT,nomTextField, prenomTextField;
+            private JPasswordField passwordT;
             private JComboBox<String> typeUserComboBox;
             private JComboBox<String> statusComboBox;
             private JButton okButton, cancelButton;
@@ -326,7 +349,7 @@ public class DB {
                 typeUserLabel=new JLabel("Type");
                 status =new JLabel("Status");
                 usernameT=new JTextField(15);
-                passwordT=new JTextField(15);
+                passwordT=new JPasswordField(15);
                 emailT=new JTextField(15);
                 prenomTextField=new JTextField(15);
                 nomTextField=new JTextField(15);
@@ -335,7 +358,7 @@ public class DB {
                 typeUserComboBox=new JComboBox<>();
                 statusComboBox=new JComboBox<>();
                 typeUserComboBox.setPreferredSize(new Dimension(165, 20));
-               statusComboBox.setPreferredSize(new Dimension(165, 20));
+                statusComboBox.setPreferredSize(new Dimension(165, 20));
                 okButton=new JButton("Ok");
                 cancelButton=new JButton("Cancel");
 
@@ -426,8 +449,8 @@ public class DB {
                 gc.anchor=GridBagConstraints.WEST;
                 gc.insets=noPadding;
                 controlsPannel.add(prenomTextField, gc);
-                 //***********
-               gc.weightx=1;
+                //***********
+                gc.weightx=1;
                 gc.weighty=1;
 
                 gc.gridy++;
@@ -561,8 +584,8 @@ public class DB {
             /**
              * Les colonnes a afficher
              */
-            String[] colonnes=new String[] {"id",  "nom", "prenom","userName","passWord", "email","idTypesUser"};
-
+            // String[] colonnes=new String[] {"id",  "nom", "prenom","userName","passWord", "email","idTypesUser"};
+            String[] colonnes=new String[] {"id",  "nom", "prenom","userName", "email","permission"};
             /**
              * La liste des Users
              */
@@ -595,10 +618,18 @@ public class DB {
                     case 1: return User.getNom();
                     case 2: return User.getPrenom();
                     case 3: return User.getUsername();
-                    case 4: return User.getPassword();
-                    case 5: return User.getemail();
-                    case 6: return User.getpermission();
-                    case 7: return User.getStatus();
+                    // case 4: return User.getPassword();
+                    case 5:
+                        switch (User.getPermission()) {
+                            case 1:
+                                return "administrateur";
+                            case 2:
+                                return "moderateur";
+                            case 3:
+                                return "normal";
+                        }
+                    case 4: return User.getemail();
+                    case 6: return User.getStatus();
                 }
                 return null;
             }
@@ -614,6 +645,7 @@ public class DB {
             private JTable table;
             private RequestUser.UserTableModel UserTableModel;
 
+            private JButton fermerButton;
             private JButton modifierButton;
             private JButton deleteButton;
 
@@ -635,8 +667,8 @@ public class DB {
                 table=new JTable();
                 UserTableModel=new UserTableModel();
                 table.setModel(UserTableModel);
-
-                modifierButton=new JButton("modifierr");
+                fermerButton=new JButton("Fermer");
+                modifierButton=new JButton("Modifierr");
                 deleteButton=new JButton("Delete");
 
                 /**
@@ -645,6 +677,7 @@ public class DB {
                 buttonsPanel=new JPanel();
 
                 buttonsPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
+                buttonsPanel.add(fermerButton);
 
                 buttonsPanel.add(modifierButton);
                 buttonsPanel.add(deleteButton);
@@ -686,7 +719,9 @@ public class DB {
             public JButton getModifierButton() {
                 return modifierButton;
             }
-
+            public JButton getFermerButton() {
+                return fermerButton;
+            }
             public JButton getDeleteButton() {
                 return deleteButton;
             }

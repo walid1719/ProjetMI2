@@ -2,10 +2,7 @@ import persistance.DB;
 import persistance.Fenetre;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.net.*;
 import java.io.*;
 import javax.swing.*;
@@ -32,7 +29,7 @@ public class ClientInterface extends Thread{
   Socket server;
   private JMenuBar menuBar;
   private JMenu  menuUser;
-  private JMenuItem itemUser;
+  private JMenuItem itemUser,itemStatistic;
 
   public ClientInterface() {
     this.serverName = "localhost";
@@ -43,13 +40,13 @@ public class ClientInterface extends Thread{
     String fontA = "Arial, sans-serif";
     Font font = new Font(fontA, Font.PLAIN, 15);
 
-    final JFrame jframe = new JFrame("Messagerie Instantanée");
+    final  JFrame jframe = new JFrame("Messagerie Instantanée");
     jframe.getContentPane().setLayout(null);
     jframe.setSize(700, 500);
     jframe.setResizable(false);
     jframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-    // champs de discussion
+    // champs text de discussion
     champDiscu.setBounds(186, 25, 490, 320);
     champDiscu.setFont(font);
     champDiscu.setMargin(new Insets(6, 6, 6, 6));
@@ -72,7 +69,7 @@ public class ClientInterface extends Thread{
     listeUtilisateurs.setContentType("text/html");
     listeUtilisateurs.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
 
-    // champs message
+    // champs text message
     champsMessage.setBounds(0, 350, 400, 50);
     champsMessage.setFont(font);
     champsMessage.setMargin(new Insets(6, 6, 6, 6));
@@ -94,6 +91,27 @@ public class ClientInterface extends Thread{
       // send message on Enter
       public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+          /*
+          tester le status
+           */
+          DB.RequestUser requet = new DB.RequestUser();
+          LoginFrame.userCurrent.setStatus(requet.getUserById(LoginFrame.userCurrent.getId()).getStatus());
+          if(LoginFrame.userCurrent.getStatus() > 1) {
+
+            jframe.remove(btnEnvoyer);
+            jframe.remove(jSP);
+            jframe.remove(btnDeconnecter);
+            jframe.revalidate();
+            jframe.repaint();
+            read.interrupt();
+            listeUtilisateurs.setText(null);
+            champDiscu.setBackground(Color.LIGHT_GRAY);
+            listeUtilisateurs.setBackground(Color.LIGHT_GRAY);
+            appendToPane(champDiscu, "<span>Connexion fermée.</span>");
+            (new DB.RequestUser()).addLog(LoginFrame.userCurrent,6);
+            output.close();
+          }
+          //***
           envoiMessage();
         }
       }
@@ -102,6 +120,27 @@ public class ClientInterface extends Thread{
     // CliQUER BOUTON ENVOYER
     btnEnvoyer.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent ae) {
+        /*
+          tester le status
+           */
+        DB.RequestUser requet = new DB.RequestUser();
+        LoginFrame.userCurrent.setStatus(requet.getUserById(LoginFrame.userCurrent.getId()).getStatus());
+        if(LoginFrame.userCurrent.getStatus() > 1) {
+
+          jframe.remove(btnEnvoyer);
+          jframe.remove(jSP);
+          jframe.remove(btnDeconnecter);
+          jframe.revalidate();
+          jframe.repaint();
+          read.interrupt();
+          listeUtilisateurs.setText(null);
+          champDiscu.setBackground(Color.LIGHT_GRAY);
+          listeUtilisateurs.setBackground(Color.LIGHT_GRAY);
+          appendToPane(champDiscu, "<span>Connexion fermée.</span>");
+          (new DB.RequestUser()).addLog(LoginFrame.userCurrent,6);
+          output.close();
+        }
+        //***
         envoiMessage();
       }
     });
@@ -140,23 +179,32 @@ public class ClientInterface extends Thread{
     //*****************
     // Création de la barre de menu
     if (LoginFrame.isAdmin ){
-    menuBar = new JMenuBar();
-    menuUser = new JMenu("Utilisateurs");
-    itemUser = new JMenuItem("Utilisateur");
-    menuUser.add(itemUser);
-    jframe.setJMenuBar(menuBar);
-    menuBar.add(menuUser);
-    itemUser.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        //GestionUtilisateurFrame guf = new GestionUtilisateurFrame();
-        Fenetre guf = new Fenetre();
-        guf.setVisible(true);
-        //guf.dispose();
+      menuBar = new JMenuBar();
+      menuUser = new JMenu("Utilisateurs");
+      itemUser = new JMenuItem("Utilisateur");
+      itemStatistic = new JMenuItem("Statistiques");
+      menuUser.add(itemUser);
+      menuUser.add(itemStatistic);
+      jframe.setJMenuBar(menuBar);
+      menuBar.add(menuUser);
+      itemUser.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          //GestionUtilisateurFrame guf = new GestionUtilisateurFrame();
+          Fenetre guf = new Fenetre();
+          guf.setVisible(true);
+          //guf.dispose();
 
-      }
-    });
-    menuUser.setVisible(true);
+        }
+      });
+      itemStatistic.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          StatistiquesLog statis = new StatistiquesLog();
+          statis.setVisible(true);
+        }
+      });
+      menuUser.setVisible(true);
     }
     //**********
     jframe.setVisible(true);
@@ -205,7 +253,6 @@ public class ClientInterface extends Thread{
       }
 
     });
-
     //
     btnDeconnecter.addActionListener(new ActionListener()  {
       public void actionPerformed(ActionEvent ae) {
@@ -229,7 +276,6 @@ public class ClientInterface extends Thread{
     });
 
 
-
   }
 
   // les champs vides
@@ -250,9 +296,9 @@ public class ClientInterface extends Thread{
 
     public void removeUpdate(DocumentEvent e) {
       if(text1.getText().trim().equals("") ||
-          text2.getText().trim().equals("") ||
-          text3.getText().trim().equals("")
-          ){
+              text2.getText().trim().equals("") ||
+              text3.getText().trim().equals("")
+      ){
         jcbtn.setEnabled(false);
       }else{
         jcbtn.setEnabled(true);
@@ -260,9 +306,9 @@ public class ClientInterface extends Thread{
     }
     public void insertUpdate(DocumentEvent e) {
       if(text1.getText().trim().equals("") ||
-          text2.getText().trim().equals("") ||
-          text3.getText().trim().equals("")
-          ){
+              text2.getText().trim().equals("") ||
+              text3.getText().trim().equals("")
+      ){
         jcbtn.setEnabled(false);
       }else{
         jcbtn.setEnabled(true);
@@ -275,6 +321,8 @@ public class ClientInterface extends Thread{
   public void envoiMessage() {
     try {
       String message = champsMessage.getText().trim();
+
+
       if (message.equals("")) {
         return;
       }
@@ -305,8 +353,8 @@ public class ClientInterface extends Thread{
             if (message.charAt(0) == '[') {
               message = message.substring(1, message.length()-1);
               ArrayList<String> ListUser = new ArrayList<String>(
-                  Arrays.asList(message.split(", "))
-                  );
+                      Arrays.asList(message.split(", "))
+              );
               listeUtilisateurs.setText(null);
               for (String user : ListUser) {
                 appendToPane(listeUtilisateurs, "@" + user);
